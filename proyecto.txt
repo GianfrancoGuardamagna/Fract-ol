@@ -1,0 +1,710 @@
+// ========== ./printf/ft_printf.h ==========
+#ifndef FT_PRINTF_H
+# define FT_PRINTF_H
+# include <stdarg.h>
+# include <unistd.h>
+# include <stdint.h>
+# include <limits.h>
+
+int ft_printf(char const *stringy, ...);
+int ft_printstr(char *stringy);
+int ft_printptr(void *ptr);
+int ft_printnbr(int number);
+int ft_printchar(char  charsy);
+int ft_printhex(unsigned int numby, char *hex);
+int ft_printunbr(unsigned int number);
+int ft_printfloat(float number);
+
+
+#endif
+// ========== ./fractals/utils_fractals.c ==========
+#include "fractol.h"
+
+Complex square(Complex z) {
+    Complex res;
+    res.real = z.real * z.real - z.imag * z.imag;
+    res.imag = 2 * z.real * z.imag;
+    return res;
+}
+
+Complex add(Complex a, Complex b) {
+    Complex res;
+    res.real = a.real + b.real;
+    res.imag = a.imag + b.imag;
+    return res;
+}
+
+// ========== ./fractals/iterators.c ==========
+#include "fractol.h"
+
+int iterator(Complex c, int maxIter) {
+    Complex z;
+    int i;
+
+    z.real = 0.0;
+    z.imag = 0.0;
+    i = 0;
+    while (i < maxIter) {
+        z = add(square(z), c);
+        if (z.real * z.real + z.imag * z.imag > 4.0)
+            return i;
+        i++;
+    }
+    return maxIter;
+}
+
+int julia_iterator(Complex z, Complex c, int maxIter) {
+    int i;
+
+    i = 0;
+    while (i < maxIter) {
+        z = add(square(z), c);
+        if (z.real * z.real + z.imag * z.imag > 4.0)
+            return i;
+        i++;
+    }
+    return maxIter;
+}
+
+// ========== ./fractals/fractals.c ==========
+#include "fractol.h"
+
+void generate_mandelbrot(t_mlx_data *data, int x, int y) {
+    // My colours
+    int colors[5] = {
+        0xff3c00,  // #ff3c00
+        0xff6e00,  // #ff6e00  
+        0xffd500,  // #ffd500
+        0x00e677,  // #00e677
+        0x00aeff   // #00aeff
+    };
+
+    double range = 4.0 / data->zoom;
+    while (y < SIDE_LEN) {
+        x = 0;  // Reset x for each line
+        while (x < SIDE_LEN) {
+            // Mapping pixels to complex
+            double real = (x - SIDE_LEN / 2.0) * range / SIDE_LEN + data->center_x;
+            double imag = (y - SIDE_LEN / 2.0) * range / SIDE_LEN + data->center_y;
+            Complex c = {real, imag};
+
+            int iter = iterator(c, data->max_iter);
+
+            // Creats a color based on the iterations
+            int color;
+            if (iter == data->max_iter) {
+                color = 0x000000;  // Use #739a9a if the number is on the set
+            } else {
+                double t = (double)iter / data->max_iter;
+                double freq1 = t * 3.14159 * 12;
+                double freq2 = t * 3.14159 * 16;
+                double freq3 = t * 3.14159 * 20;
+                double combined = (sin(freq1) * cos(freq1 * 0.5) + 
+                                 sin(freq2) * cos(freq2 * 0.3) + 
+                                 sin(freq3) * cos(freq3 * 0.7)) / 3.0;
+                // Suavizar transiciones entre colores
+                double color_pos = (combined + 1.0) * 2.0; // 0 a 4
+                int index1 = (int)color_pos % 5;
+                int index2 = (index1 + 1) % 5;
+                double blend = color_pos - (int)color_pos; // fracción para interpolar
+                
+                // Extraer componentes RGB del primer color
+                int r1 = (colors[index1] >> 16) & 0xFF;
+                int g1 = (colors[index1] >> 8) & 0xFF;
+                int b1 = colors[index1] & 0xFF;
+                
+                // Extraer componentes RGB del segundo color
+                int r2 = (colors[index2] >> 16) & 0xFF;
+                int g2 = (colors[index2] >> 8) & 0xFF;
+                int b2 = colors[index2] & 0xFF;
+                
+                // Interpolar cada componente
+                int r = (int)(r1 + (r2 - r1) * blend);
+                int g = (int)(g1 + (g2 - g1) * blend);
+                int b = (int)(b1 + (b2 - b1) * blend);
+                
+                color = encode_rgb(r, g, b);
+            }
+
+            my_pixel_put(&data->img, x, y, color);
+            x++;
+        }
+        y++;
+    }
+
+    // Put image on screen
+    mlx_put_image_to_window(data->mlx_ptr, data->mlx_window, data->img.img_ptr, 0, 0);
+}
+
+void generate_julia(t_mlx_data *data, Complex c)
+{
+    int y = 0;
+    int x = 0;
+
+    // My colours
+    int colors[5] = {
+        0xff3c00,  // #ff3c00
+        0xff6e00,  // #ff6e00  
+        0xffd500,  // #ffd500
+        0x00e677,  // #00e677
+        0x00aeff   // #00aeff
+    };
+
+    double range = 4.0 / data->zoom;
+    while (y < SIDE_LEN) {
+        x = 0;  // Reset x for each line
+        while (x < SIDE_LEN) {
+            // Mapping pixels to complex
+            double real = (x - SIDE_LEN / 2.0) * range / SIDE_LEN + data->center_x;
+            double imag = (y - SIDE_LEN / 2.0) * range / SIDE_LEN + data->center_y;
+            Complex z = {real, imag};
+
+            int iter = julia_iterator(z, c, data->max_iter);
+
+            // Creats a color based on the iterations
+            int color;
+            if (iter == data->max_iter) {
+                color = 0x000000;  // Use #739a9a if the number is on the set
+            } else {
+                double t = (double)iter / data->max_iter;
+                double freq1 = t * 3.14159 * 12;
+                double freq2 = t * 3.14159 * 16;
+                double freq3 = t * 3.14159 * 20;
+                double combined = (sin(freq1) * cos(freq1 * 0.5) + 
+                                 sin(freq2) * cos(freq2 * 0.3) + 
+                                 sin(freq3) * cos(freq3 * 0.7)) / 3.0;
+                // Suavizar transiciones entre colores
+                double color_pos = (combined + 1.0) * 2.0; // 0 a 4
+                int index1 = (int)color_pos % 5;
+                int index2 = (index1 + 1) % 5;
+                double blend = color_pos - (int)color_pos; // fracción para interpolar
+                
+                // Extraer componentes RGB del primer color
+                int r1 = (colors[index1] >> 16) & 0xFF;
+                int g1 = (colors[index1] >> 8) & 0xFF;
+                int b1 = colors[index1] & 0xFF;
+                
+                // Extraer componentes RGB del segundo color
+                int r2 = (colors[index2] >> 16) & 0xFF;
+                int g2 = (colors[index2] >> 8) & 0xFF;
+                int b2 = colors[index2] & 0xFF;
+                
+                // Interpolar cada componente
+                int r = (int)(r1 + (r2 - r1) * blend);
+                int g = (int)(g1 + (g2 - g1) * blend);
+                int b = (int)(b1 + (b2 - b1) * blend);
+                
+                color = encode_rgb(r, g, b);
+            }
+
+            my_pixel_put(&data->img, x, y, color);
+            x++;
+        }
+        y++;
+    }
+
+    // Put image on screen
+    mlx_put_image_to_window(data->mlx_ptr, data->mlx_window, data->img.img_ptr, 0, 0);
+}
+
+void generate_burning_ship(t_mlx_data *data, int x, int y) {
+    // My colours
+    int colors[5] = {
+        0xff3c00,  // #ff3c00
+        0xff6e00,  // #ff6e00  
+        0xffd500,  // #ffd500
+        0x00e677,  // #00e677
+        0x00aeff   // #00aeff
+    };
+
+    double range = 4.0 / data->zoom;
+    while (y < SIDE_LEN) {
+        x = 0;  // Reset x for each line
+        while (x < SIDE_LEN) {
+            // Mapping pixels to complex
+            double real = (x - SIDE_LEN / 2.0) * range / SIDE_LEN + data->center_x;
+            double imag = (y - SIDE_LEN / 2.0) * range / SIDE_LEN + data->center_y;
+            Complex c = {real, imag};
+
+            int iter = iterator(c, data->max_iter);
+
+            // Creats a color based on the iterations
+            int color;
+            if (iter == data->max_iter) {
+                color = 0x000000;  // Use #739a9a if the number is on the set
+            } else {
+                double t = (double)iter / data->max_iter;
+                double freq1 = t * 3.14159 * 12;
+                double freq2 = t * 3.14159 * 16;
+                double freq3 = t * 3.14159 * 20;
+                double combined = (sin(freq1) * cos(freq1 * 0.5) + 
+                                 sin(freq2) * cos(freq2 * 0.3) + 
+                                 sin(freq3) * cos(freq3 * 0.7)) / 3.0;
+                // Suavizar transiciones entre colores
+                double color_pos = (combined + 1.0) * 2.0; // 0 a 4
+                int index1 = (int)color_pos % 5;
+                int index2 = (index1 + 1) % 5;
+                double blend = color_pos - (int)color_pos; // fracción para interpolar
+                
+                // Extraer componentes RGB del primer color
+                int r1 = (colors[index1] >> 16) & 0xFF;
+                int g1 = (colors[index1] >> 8) & 0xFF;
+                int b1 = colors[index1] & 0xFF;
+                
+                // Extraer componentes RGB del segundo color
+                int r2 = (colors[index2] >> 16) & 0xFF;
+                int g2 = (colors[index2] >> 8) & 0xFF;
+                int b2 = colors[index2] & 0xFF;
+                
+                // Interpolar cada componente
+                int r = (int)(r1 + (r2 - r1) * blend);
+                int g = (int)(g1 + (g2 - g1) * blend);
+                int b = (int)(b1 + (b2 - b1) * blend);
+                
+                color = encode_rgb(r, g, b);
+            }
+
+            my_pixel_put(&data->img, x, y, color);
+            x++;
+        }
+        y++;
+    }
+
+    // Put image on screen
+    mlx_put_image_to_window(data->mlx_ptr, data->mlx_window, data->img.img_ptr, 0, 0);
+}
+
+// ========== ./main.c ==========
+#include "fractol.h"
+
+int main(int argc, char **argv)
+{
+    t_mlx_data mlx_data;
+
+    mlx_data = mlx_initiator(mlx_data);
+
+    mlx_data.max_iter = 500;
+    mlx_data.zoom = 1.0;
+    mlx_data.center_x = 0.0;
+    mlx_data.center_y = 0.0;
+
+    if(((argc == 2) || (argc == 3)) && !ft_strncmp(argv[1], "mandelbrot", 10))
+    {
+        if(argc == 3)
+        {
+            mlx_data.max_iter = ft_atoi(argv[2]);
+            if(mlx_data.max_iter <= 0)
+            {
+                ft_printf("Expected a positive INT for maximum iterations for mandelbrot's set\n");
+                exit(1);
+            }
+        }
+        mlx_data.fractal_type = 0;
+        generate_mandelbrot(&mlx_data, 0 ,0);
+    }
+    else if(((argc == 4) || (argc == 5)) && !ft_strncmp(argv[1], "julia", 5) && argv[2] && argv[3])
+    {
+        size_t i;
+        Complex c;
+
+        i = 0;
+        if(argc == 5)
+        {
+            mlx_data.max_iter = ft_atoi(argv[4]);
+            if(mlx_data.max_iter <= 0)
+            {
+                ft_printf("Expected a positive INT for maximum iterations for julia's set\n");
+                exit(1);
+            }
+        }
+        if(argv[2][0] == '-' || argv[2][0] == '+')
+            i = 1;
+        while(i < ft_strlen(argv[2]))
+        {
+            if(!ft_isdigit(argv[2][i]) && argv[2][i] != '.')
+            {
+                ft_printf("Error: '%s' is not a valid number for real part\n", argv[2]);
+                exit(3);
+            }
+            i++;
+        }
+
+        i = 0;
+        if(argv[3][0] == '-' || argv[3][0] == '+')
+            i = 1;
+        while(i < ft_strlen(argv[3]))
+        {
+            if(!ft_isdigit(argv[3][i]) && argv[3][i] != '.')
+            {
+                ft_printf("Error: '%s' is not a valid number for imaginary part\n", argv[3]);
+                exit(3);
+            }
+            i++;
+        }
+        mlx_data.fractal_type = 1;
+        c.real = ft_atof(argv[2]);
+        c.imag = ft_atof(argv[3]);
+        mlx_data.julia_c = c;
+        generate_julia(&mlx_data, mlx_data.julia_c);
+    }
+    else if(((argc == 2) || (argc == 3)) && !ft_strncmp(argv[1], "burning_ship", 12))
+    {
+        if(argc == 3)
+        {
+            mlx_data.max_iter = ft_atoi(argv[2]);
+            if(mlx_data.max_iter <= 0)
+            {
+                ft_printf("Expected a positive INT for maximum iterations for burning ship fractal\n");
+                exit(1);
+            }
+        }
+        mlx_data.fractal_type = 2;
+        generate_burning_ship(&mlx_data, 0, 0);
+    }
+    else
+    {
+        ft_printf("Please enter the right format:\n\t\"./fractal mandelbrot <max. iterations>\"\t\n\t\"./fractal julia <real> <img> <max. iterations>\"\t\n\t\"./fractal burning_ship <max. iterations>\"\t\n");
+        exit(1);
+    }
+    
+    mlx_hooks(mlx_data);
+
+    // Cleanup the memory allocated
+    cleanup_mlx(&mlx_data);
+    return (0);
+}
+
+// ========== ./fractol.h ==========
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   fractol.h                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gguardam <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/06 12:00:00 by gguardam          #+#    #+#             */
+/*   Updated: 2025/06/06 12:00:00 by gguardam         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef FRACTOL_H
+# define FRACTOL_H
+
+# include <stdlib.h>
+# include <math.h>
+# include <stdio.h>
+# include <X11/keysym.h>
+# include "minilibx-linux/mlx.h"
+# include "libft/libft.h"
+# include "printf/ft_printf.h"
+
+# define MALLOC_ERROR 1
+# define SIDE_LEN 600
+# define ESC_KEY 65307
+# define SPACE_KEY 32
+# define UP_KEY 65362
+# define DOWN_KEY 65364
+
+typedef unsigned char	byte;
+
+typedef struct {
+	double	real;
+	double	imag;
+}	Complex;
+
+typedef struct s_img
+{
+	void	*img_ptr;
+	char	*img_pixels_ptr;
+	int		bits_per_pixel;
+	int		endian;
+	int		line_len;
+}	t_img;
+
+typedef struct s_data
+{
+	void	*mlx_ptr;
+	void	*mlx_window;
+	t_img	img;
+	double	zoom;
+	double	center_x;
+	double	center_y;
+	int		max_iter;
+	int		fractal_type;
+	Complex	julia_c;
+}	t_mlx_data;
+
+Complex		square(Complex z);
+Complex		add(Complex a, Complex b);
+int			iterator(Complex c, int maxIter);
+int			julia_iterator(Complex z, Complex c, int maxIter);
+void		my_pixel_put(t_img *img, int x, int y, int color);
+int			encode_rgb(byte red, byte green, byte blue);
+void		generate_mandelbrot(t_mlx_data *data, int x, int y);
+void		generate_julia(t_mlx_data *data, Complex c);
+void		generate_burning_ship(t_mlx_data *data, int x, int y);
+void		cleanup_mlx(t_mlx_data *mlx_data);
+int			key_hook(int keycode, t_mlx_data *mlx_data);
+int			close_hook(t_mlx_data *mlx_data);
+t_mlx_data  mlx_initiator(t_mlx_data mlx_data);
+void 		mlx_hooks(t_mlx_data mlx_data);
+
+#endif
+// ========== ./mlx_manager/mlx_initiator.c ==========
+#include "fractol.h"
+
+t_mlx_data    mlx_initiator(t_mlx_data mlx_data){
+    //mlx_init() returns a pointer to an structure but for the moment lets say that is the connection to de Display of X Server.
+        mlx_data.mlx_ptr = mlx_init();
+        if (NULL == mlx_data.mlx_ptr)
+        {
+            ft_printf("Malloc error initiating mlx\n");
+            exit(1);
+        }
+
+        //mlx_new_window() now returns a pointer to the actual window created by X.
+        mlx_data.mlx_window = mlx_new_window(mlx_data.mlx_ptr, SIDE_LEN, SIDE_LEN, "Fract'ol");
+        if (NULL == mlx_data.mlx_window)
+        {
+            cleanup_mlx(&mlx_data);
+            ft_printf("Malloc error initiating mlx\n");
+            exit(1);
+        }
+
+        //this initialize the image pointer where we are going to upload our colour buffer;
+        mlx_data.img.img_ptr = mlx_new_image(mlx_data.mlx_ptr, SIDE_LEN, SIDE_LEN);
+        if (NULL == mlx_data.img.img_ptr)
+        {
+            cleanup_mlx(&mlx_data);
+            ft_printf("Malloc error initiating mlx\n");
+            exit(1);
+        }
+
+        /*Here we obtaing the addresses of the pixel buffer
+        //When the image was created, every pixel was assigned to a space in memory, with this function we can locate that positions to use or fill with our image.
+        */
+        mlx_data.img.img_pixels_ptr = mlx_get_data_addr(
+            mlx_data.img.img_ptr,
+            &mlx_data.img.bits_per_pixel,
+            &mlx_data.img.line_len,
+            &mlx_data.img.endian
+        );
+
+        return (mlx_data);
+    }
+// ========== ./mlx_manager/mlx_manager.c ==========
+#include "fractol.h"
+
+void cleanup_mlx(t_mlx_data *mlx_data)
+{
+    if (mlx_data->img.img_ptr)
+        mlx_destroy_image(mlx_data->mlx_ptr, mlx_data->img.img_ptr);
+    if (mlx_data->mlx_window)
+        //Destroyed to free the mallocs like the other functions, also it frees the '*mlx_window'
+        mlx_destroy_window(mlx_data->mlx_ptr, mlx_data->mlx_window);
+    if (mlx_data->mlx_ptr)
+    {
+        //We should free the mallocs made on the initialitation of the X Server.
+        mlx_destroy_display(mlx_data->mlx_ptr);
+        free(mlx_data->mlx_ptr);
+    }
+}
+
+// Event handler to close window with ESC key
+int key_hook(int keycode, t_mlx_data *mlx_data)
+{
+    ft_printf("Keycode presionado: %d\n%d\n", keycode, SPACE_KEY);
+    if (keycode == ESC_KEY)
+        mlx_loop_end(mlx_data->mlx_ptr);
+    else if(keycode == 32)
+    {
+        mlx_data->zoom = 1;
+        mlx_data->center_x = 0;
+        mlx_data->center_y = 0;
+        if(mlx_data->fractal_type == 0)
+            generate_mandelbrot(mlx_data, 0 , 0);
+        else if(mlx_data->fractal_type == 1)
+            generate_julia(mlx_data, mlx_data->julia_c);
+        else if(mlx_data->fractal_type == 2)
+            generate_burning_ship(mlx_data, 0 , 0);
+    }
+    return (0);
+}
+
+int mouse_wheel_hook(int button, int x, int y, t_mlx_data *mlx_data)
+{
+    double mouse_re;
+    double mouse_im;
+    double zoom_factor;
+
+    // Convert mouse con Complex Coordinates
+    mouse_re = (x - SIDE_LEN / 2.0) * (4.0 / (SIDE_LEN * mlx_data->zoom)) + mlx_data->center_x;
+    mouse_im = (y - SIDE_LEN / 2.0) * (4.0 / (SIDE_LEN * mlx_data->zoom)) + mlx_data->center_y;
+
+    if (button == 4) // Zoom in
+    {
+        zoom_factor = 1.1;
+        mlx_data->zoom *= zoom_factor;
+    }
+    else if (button == 5) // Zoom out
+    {
+        zoom_factor = 1/1.1;
+        mlx_data->zoom *= zoom_factor;
+    }
+    else
+        return (0);
+
+    // Ajustar el centro para que el zoom se centre en el ratón
+    mlx_data->center_x = mouse_re - (mouse_re - mlx_data->center_x) / zoom_factor;
+    mlx_data->center_y = mouse_im - (mouse_im - mlx_data->center_y) / zoom_factor;
+
+    // Volver a renderizar el fractal
+    if (mlx_data->fractal_type == 0)
+        generate_mandelbrot(mlx_data, 0, 0);
+    else if (mlx_data->fractal_type == 1)
+        generate_julia(mlx_data, mlx_data->julia_c);
+    else if (mlx_data->fractal_type == 2)
+        generate_burning_ship(mlx_data, 0, 0);
+    return (0);
+}
+
+// Event handler for window close button (X)
+int close_hook(t_mlx_data *mlx_data)
+{
+    mlx_loop_end(mlx_data->mlx_ptr);
+    return (0);
+}
+
+void my_pixel_put(t_img *img, int x, int y, int color)
+{
+	int	offset;
+
+	//🚨 Line len is in bytes. WIDTH 400 len_line ~1600 (can differ for alignment). Because 4 bytes per pixel to represent a colour.
+	offset = (img->line_len * y) + (x * (img->bits_per_pixel / 8));	
+
+	*((unsigned int *)(offset + img->img_pixels_ptr)) = color;
+}
+
+//it transforms the indiviual numbers into one big 32 bits number. It displace the red 16 positions to the left, the green 8, and the blue stays in place. So now you have one number compound by the initial three.
+int	encode_rgb(byte red, byte green, byte blue)
+{
+    return (red << 16 | green << 8 | blue);
+}
+
+void mlx_hooks(t_mlx_data mlx_data)
+{
+        /* Set up event handlers
+        // This function will keep track of the different events that the client trigger with the keyboard or mouse.
+        // It need the first param as window, the second is a function that handle the input, and the pointer to X Server.
+        // 'key_hook' function will recived as first parameter the input as INT, indistinctly from the key.
+        */
+        mlx_hook(mlx_data.mlx_window, 4, 1L<<2, mouse_wheel_hook, &mlx_data);
+        mlx_key_hook(mlx_data.mlx_window, key_hook, &mlx_data);
+        // mlx_mouse_hook(mlx_data.mlx_window, key_hook, &mlx_data); Solo reconoce los clicks
+
+        /* Window close event
+        // This function will keep track of the different events forwarded from the window.
+        // In this case, has the window as first param, the number of the event that in this case is 17 because of X11 protocol.
+        // The third param '0', will be the masc, and the last param is a pointer to the display.
+        // Events (like ButtonPress): Describe the actual event type, such as pressing a button or moving the mouse.
+
+        //Event Masks (like ButtonPressMask): Are filters that determine which types of events a program wants 
+        //to listen for. By setting a specific mask, you're saying, "Notify me when this type of event happens."
+        */
+        mlx_hook(mlx_data.mlx_window, 17, 0, close_hook, &mlx_data);
+
+        /* EVENT LOOP
+        Without this loop the process will stop immediately
+        
+        * The minilibx library has a function called mlx_loop. 
+        * This function starts what's known as an event loop. 
+        * An event loop keeps the application running and constantly 
+        * checks for events, such as user input (like mouse clicks or keyboard presses). 
+        * As long as the application is running, this loop continues to execute.
+
+        The concept can be likened to:
+
+            while (application is running) 
+            {
+                check for events;
+                    execute associated functions for those events;
+            }
+        */
+        mlx_loop(mlx_data.mlx_ptr); //Carefull with this loops because without escape or close event, it forces you to shut down the process, never freeing the memory allocated;
+}
+// ========== ./libft/libft.h ==========
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   libft.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gguardam <gguardam@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/03 16:26:18 by gguardam          #+#    #+#             */
+/*   Updated: 2025/05/12 15:20:50 by gguardam         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef LIBFT_H
+# define LIBFT_H
+
+# include <stddef.h>
+# include <stdlib.h>
+# include <stdint.h>
+# include <limits.h>
+# include <unistd.h>
+
+int		ft_atoi(const char *str);
+void	ft_bzero(void *s, size_t n);
+void	*ft_calloc(size_t nmemb, size_t size);
+int		ft_isalnum(int c);
+int		ft_isalpha(int c);
+int		ft_isdigit(int c);
+int		ft_isprint(int c);
+int		ft_isascii(int c);
+char	*ft_itoa(int num);
+void	*ft_memchr(const void *s, int c, size_t n);
+int		ft_memcmp(const void *s1, const void *s2, size_t n);
+void	*ft_memcpy(void *dest, const void *src, size_t n);
+void	*ft_memmove(void *dest, const void *src, size_t n);
+void	*ft_memset(void *s, int c, size_t n);
+void	ft_putchar_fd(char c, int fd);
+void	ft_putendl_fd(char *c, int fd);
+void	ft_putnbr_fd(int n, int fd);
+void	ft_putstr_fd(char *c, int fd);
+char	**ft_split(const char *s, char c);
+char	*ft_strchr(const char *s, int c);
+char	*ft_strdup(const char *s);
+void	ft_striteri(char *s, void (*f)(unsigned int, char*));
+char	*ft_strjoin(char const *s1, char const *s2);
+size_t	ft_strlcat(char *dst, const char *src, size_t dsize);
+size_t	ft_strlcpy(char *dst, const char *src, size_t size);
+size_t	ft_strlen(const char *s);
+char	*ft_strmapi(char const *s, char (*f)(unsigned int, char));
+int		ft_strncmp(const char *s1, const char *s2, size_t n);
+char	*ft_strnstr(const char *big, const char *little, size_t len);
+char	*ft_strrchr(const char *s, int c);
+char	*ft_strtrim(char const *s1, char const *set);
+char	*ft_substr(const char *s, unsigned int start, size_t len);
+int		ft_tolower(int c);
+int		ft_toupper(int c);
+float	ft_atof(const char *str);
+
+typedef struct s_list
+{
+	void			*content;
+	struct s_list	*next;
+}	t_list;
+
+t_list	*ft_lstnew(void *content);
+void	ft_lstadd_front(t_list **lst, t_list *new);
+int		ft_lstsize(t_list *lst);
+t_list	*ft_lstlast(t_list *lst);
+void	ft_lstadd_back(t_list **lst, t_list *new);
+void	ft_lstdelone(t_list *lst, void (*del)(void *));
+void	ft_lstclear(t_list **lst, void (*del)(void *));
+void	ft_lstiter(t_list *lst, void (*f)(void *));
+t_list	*ft_lstmap(t_list *lst, void *(*f)(void *), void (*del)(void *));
+
+#endif
+
