@@ -13,7 +13,7 @@
 NAME = fractol
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
-SOURCE = main.c mlx_manager/mlx_manager.c \
+SOURCE = main.c input_controller.c mlx_manager/mlx_manager.c \
 mlx_manager/mlx_initiator.c fractals/fractals.c \
 fractals/utils_fractals.c fractals/iterators.c
 OBJ = $(SOURCE:.c=.o)
