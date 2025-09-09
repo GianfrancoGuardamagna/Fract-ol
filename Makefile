@@ -3,17 +3,18 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gguardam <marvin@42.fr>                    +#+  +:+       +#+         #
+#    By: gguardam <gguardam@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/06 12:00:00 by gguardam          #+#    #+#              #
-#    Updated: 2025/06/06 12:00:00 by gguardam         ###   ########.fr        #
+#    Updated: 2025/09/09 15:09:55 by gguardam         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = fractol
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
-SOURCE = main.c input_controller.c mlx_manager/mlx_manager.c \
+SOURCE = main.c input_controller/input_controller.c input_controller/input_utils.c\
+mlx_manager/mlx_manager.c \
 mlx_manager/mlx_initiator.c fractals/fractals.c \
 fractals/utils_fractals.c fractals/iterators.c
 OBJ = $(SOURCE:.c=.o)

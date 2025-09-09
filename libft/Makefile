@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gguardam <marvin@42.fr>                    +#+  +:+       +#+         #
+#    By: gguardam <gguardam@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/03 16:26:25 by gguardam          #+#    #+#              #
-#    Updated: 2025/05/12 15:21:14 by gguardam         ###   ########.fr        #
+#    Updated: 2025/09/09 15:41:19 by gguardam         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,6 +23,7 @@ SOURCE = ft_atoi.c \
          ft_strrchr.c \
          ft_bzero.c \
          ft_isdigit.c \
+		 ft_issign.c \
          ft_memcmp.c \
          ft_strchr.c \
          ft_strlen.c \

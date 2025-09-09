@@ -5,3 +5,4 @@ Do make into the minilibx
 minilibx-linux-> Path with the lib
 mlx_Linux-> Name of the archive file (libmlx_Linux.a)
 
+c: -1,3 + 0,00525·i; -0,72 – 0,196·i; -0,1 + 0,87·i y -0,51 – 0,601·i

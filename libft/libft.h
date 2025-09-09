@@ -6,7 +6,7 @@
 /*   By: gguardam <gguardam@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/03 16:26:18 by gguardam          #+#    #+#             */
-/*   Updated: 2025/05/12 15:20:50 by gguardam         ###   ########.fr       */
+/*   Updated: 2025/09/09 15:41:00 by gguardam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ void	*ft_calloc(size_t nmemb, size_t size);
 int		ft_isalnum(int c);
 int		ft_isalpha(int c);
 int		ft_isdigit(int c);
+int		ft_issign(int c);
 int		ft_isprint(int c);
 int		ft_isascii(int c);
 char	*ft_itoa(int num);

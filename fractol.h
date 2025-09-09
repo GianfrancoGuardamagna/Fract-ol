@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   fractol.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gguardam <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: gguardam <gguardam@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 12:00:00 by gguardam          #+#    #+#             */
-/*   Updated: 2025/06/06 12:00:00 by gguardam         ###   ########.fr       */
+/*   Updated: 2025/09/09 15:58:29 by gguardam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 # include "printf/ft_printf.h"
 
 # define MALLOC_ERROR 1
-# define SIDE_LEN 600
+# define SIDE_LEN 1400
 # define ESC_KEY 65307
 # define SPACE_KEY 32
 # define UP_KEY 65362
@@ -99,5 +99,10 @@ int			key_hook(int keycode, t_mlx_data *mlx_data);
 int			close_hook(t_mlx_data *mlx_data);
 t_mlx_data  mlx_initiator(t_mlx_data mlx_data);
 void 		mlx_hooks(t_mlx_data mlx_data);
+
+//Input Controller
+void	mandelbrot(int argc, char **argv, t_mlx_data mlx_data);
+void	julia(char **argv, t_mlx_data mlx_data);
+int		iter_controller(char *str);
 
 #endif
