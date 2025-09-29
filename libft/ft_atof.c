@@ -1,57 +1,72 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_atoi.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gguardam <gguardam@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/30 17:21:05 by gguardam          #+#    #+#             */
+/*   Updated: 2025/05/06 14:28:11 by gguardam         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "libft.h"
 
-static int	white_spaces(char charsy)
+static int	is_space(char c)
 {
-	if (charsy == ' ' || charsy == '\t' || charsy == '\n' || charsy == '\v')
-		return (1);
-	else if (charsy == '\f' || charsy == '\r')
-		return (1);
-	else
-		return (0);
+	return (c == ' ' || c == '\t' || c == '\n'
+		|| c == '\v' || c == '\f' || c == '\r');
 }
 
-static int	sign_control(char charsy)
+static int	get_sign(const char *str, int *i)
 {
-	if (charsy == '-')
-		return (-1);
-	else if (charsy == '+')
-		return (1);
-	else
-		return (0);
+	int	sign;
+
+	sign = 1;
+	if (str[*i] == '-' || str[*i] == '+')
+	{
+		if (str[*i] == '-')
+			sign = -1;
+		(*i)++;
+	}
+	return (sign);
 }
 
-float ft_atof(const char *str)
+static float	parse_fraction(const char *str, int *i)
 {
 	float	res;
-	float	decimal;
-	int	sign;
-	int	i;
-	int	dot;
+	float	dec;
+	int		dot;
 
 	res = 0;
-	decimal = 0.1;
-	sign = 1;
-	i = 0;
+	dec = 0.1;
 	dot = 0;
-	while (white_spaces(str[i]))
-		i++;
-	if (sign_control(str[i]) == -1 || sign_control(str[i]) == 1)
+	while ((ft_isdigit(str[*i])) || (str[*i] == '.' && !dot))
 	{
-		sign = sign_control(str[i]);
-		i++;
-	}
-	while ((str[i] && ft_isdigit(str[i])) || (str[i] == '.' && dot == 0))
-	{
-		if(str[i] == '.')
+		if (str[*i] == '.')
 			dot = 1;
-		else if(dot == 0)
-			res = res * 10 + (str[i] - '0');
-		else if(dot != 0)
+		else if (!dot)
+			res = res * 10 + (str[*i] - '0');
+		else
 		{
-			res += (str[i] - '0') * decimal;
-			decimal /= 10;
+			res += (str[*i] - '0') * dec;
+			dec /= 10;
 		}
-		i++;
+		(*i)++;
 	}
+	return (res);
+}
+
+float	ft_atof(const char *str)
+{
+	int		i;
+	int		sign;
+	float	res;
+
+	i = 0;
+	while (is_space(str[i]))
+		i++;
+	sign = get_sign(str, &i);
+	res = parse_fraction(str, &i);
 	return (res * sign);
 }

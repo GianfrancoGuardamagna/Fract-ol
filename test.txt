@@ -1,2 +1,2 @@
 ./fractol mandelbrot
-./fractol julia 0.4 0.4
+./fractol julia -0.4 0.6

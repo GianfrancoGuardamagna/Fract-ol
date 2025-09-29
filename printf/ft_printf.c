@@ -12,13 +12,13 @@
 
 #include "ft_printf.h"
 
-static int	parameter_manager(char	stringy, va_list vargs)
+static int	parameter_manager(char stringy, va_list vargs)
 {
 	if (stringy == 'c')
 		return (ft_printchar(va_arg(vargs, int)));
 	else if (stringy == 's')
 		return (ft_printstr(va_arg(vargs, char *)));
-    else if (stringy == 'f')
+	else if (stringy == 'f')
 		return (ft_printfloat(va_arg(vargs, double)));
 	else if (stringy == 'p')
 		return ((ft_printptr(va_arg(vargs, void *))));
@@ -32,29 +32,29 @@ static int	parameter_manager(char	stringy, va_list vargs)
 		return (ft_printhex(va_arg(vargs, unsigned int), "0123456789ABCDEF"));
 	else if (stringy == '%')
 		return (write(1, "%", 1));
-    return (0);
+	return (0);
 }
 
-int ft_printf(char const *stringy, ...)
+int	ft_printf(char const *stringy, ...)
 {
-    va_list vargs;
-    int parameters;
+	va_list	vargs;
+	int		parameters;
 
-    va_start(vargs, stringy);
-    parameters = 0;
-    while (*stringy != '\0')
-    {
-        if (*stringy == '%' && *(stringy + 1))
-        {   
-            stringy++;
-            parameters += parameter_manager(*stringy, vargs);
-        }
-        else
-        {
-            parameters += write(1, stringy, 1);
-        }
-        stringy++;
-    }
-    va_end(vargs);
-    return (parameters);
+	va_start(vargs, stringy);
+	parameters = 0;
+	while (*stringy != '\0')
+	{
+		if (*stringy == '%' && *(stringy + 1))
+		{
+			stringy++;
+			parameters += parameter_manager(*stringy, vargs);
+		}
+		else
+		{
+			parameters += write(1, stringy, 1);
+		}
+		stringy++;
+	}
+	va_end(vargs);
+	return (parameters);
 }

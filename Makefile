@@ -18,7 +18,6 @@ SOURCE = 	main.c \
 			math_utils.c \
 			render.c \
 			events.c \
-			fractol_utils/parser_utils.c \
 			init.c
 OBJ = $(SOURCE:.c=.o)
 INCLUDE = fractol.h
